@@ -1,0 +1,8 @@
+streamlit 
+streamlit_echarts
+pyecharts 
+numpy 
+pandas
+requests 
+matplotlib 
+reportlab
