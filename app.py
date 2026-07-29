@@ -110,8 +110,8 @@ run = st.button("Run simulation")
 
 st.sidebar.subheader("Financial parameters")
                      
-pv_cost_per_kwp = st.sidebar.number_input("PV cost €/kWp", 1200)
-battery_cost_per_kwh = st.sidebar.number_input("Battery cost €/kWh", 600)
+pv_cost_per_kwp = st.sidebar.number_input("PV cost €/kWp", value=1200)
+battery_cost_per_kwh = st.sidebar.number_input("Battery cost €/kWh", value=600)
 
 lifetime = st.sidebar.slider("System lifetime (years)", 5, 30, 20)
 discount_rate = st.sidebar.slider("Discount rate (%)", 0.0, 10.0, 3.0) / 100
