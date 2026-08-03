@@ -10,7 +10,7 @@ from energy_flow_graphic import make_figure
 
 st.set_page_config(layout="wide")
 st.title("☀️ Pauli's PV System Optimizer")
-st.info("Configure the system parameters in the sidebar and click 'Run Simulation'.")
+st.info("Configure the system parameters in the sidebar and click 'Run Simulation'.", icon="ℹ️")
 
 # ------------------------
 # PRESETS
@@ -19,7 +19,8 @@ st.sidebar.subheader("Presets")
 
 preset = st.sidebar.selectbox(
     "Scenario",
-    ["Custom", "Typical German household", "Heat pump home", "EV household"])
+    ["Custom", "Typical German household", "Heat pump home", "EV household"],
+    help="Select a preset scenario to automatically fill in typical values for electricity consumption, battery size, and heat pump usage.")
 
 annual_consumption = 13000
 battery_kwh = 20
@@ -40,18 +41,19 @@ elif preset == "EV household":
 # ------------------------
 st.sidebar.header("Input parameters")
 
-lat = st.sidebar.number_input("Latitude", value=48.14)
-lon = st.sidebar.number_input("Longitude", value=11.58)
+lat = st.sidebar.number_input("Latitude", value=48.14, help="Latitude of the location in decimal degrees (e.g., 48.14 for Munich, Germany).")
+lon = st.sidebar.number_input("Longitude", value=11.58, help="Longitude of the location in decimal degrees (e.g., 11.58 for Munich, Germany).")
 
-battery_kwh = st.sidebar.number_input("Battery (kWh)", value=battery_kwh)
-battery_eff = st.sidebar.number_input("Storage efficiency (%)", value=battery_eff)
+battery_kwh = st.sidebar.number_input("Battery (kWh)", value=battery_kwh, help="Capacity of the battery in kilowatt-hours.")
+battery_eff = st.sidebar.number_input("Storage efficiency (%)", value=battery_eff, help="Round-trip efficiency of the battery in percent.")
 
-price_buy = st.sidebar.number_input("Electricity price", value=0.30)
-price_sell = st.sidebar.number_input("Feed-in tariff", value=0.08)
+price_buy = st.sidebar.number_input("Electricity price", value=0.30, help="Price of electricity from the grid in euros per kilowatt-hour.")
+price_sell = st.sidebar.number_input("Feed-in tariff", value=0.08, help="Tariff for feeding excess electricity into the grid in euros per kilowatt-hour.")
 
 weather_data = st.sidebar.selectbox("Weather Data",
                                     ["Typical Meteorological Year",
-                                     "Real Historical Year"])
+                                     "Real Historical Year"], 
+                                     help="Select the type of weather data to use for the simulation. 'Typical Meteorological Year' uses averaged data, while 'Real Historical Year' uses actual historical data for a specific year.")
 
 if weather_data == "Real Historical Year":
     ref_year = st.sidebar.slider("Reference year", 2015, 2023, 2020, 1)
@@ -64,16 +66,20 @@ else:
 # ------------------------
 st.sidebar.subheader("Roof configuration")
 
-num_roofs = st.sidebar.slider("Number of roof surfaces", 1, 3, 1)
+num_roofs = st.sidebar.slider("Number of roof surfaces", 1, 3, 1, 
+                              help="Select the number of roof surfaces to model. Each roof can have its own PV size, tilt, and azimuth angle.")
 
 roof_configs = []
 
 for i in range(num_roofs):
     st.sidebar.markdown(f"### Roof {i+1}")
 
-    size = st.sidebar.number_input(f"PV Size kWp (Roof {i+1})", value=20, key=f"size_{i}")
-    tilt = st.sidebar.slider(f"Tilt ° (Roof {i+1})", 0, 60, 30, key=f"tilt_{i}")
-    azimuth = st.sidebar.slider(f"Azimuth ° (Roof {i+1})", -180, 180, i * 90, key=f"az_{i}")
+    size = st.sidebar.number_input(f"PV Size kWp (Roof {i+1})", value=20, key=f"size_{i}", 
+                                   help="Peak power of the PV system on this roof in kilowatt.")
+    tilt = st.sidebar.slider(f"Tilt ° (Roof {i+1})", 0, 90, 30, key=f"tilt_{i}", 
+                             help="Inclination of the PV system on this roof in degrees. 0° is flat, 90° is vertical.")
+    azimuth = st.sidebar.slider(f"Azimuth ° (Roof {i+1})", -180, 180, i * 90, key=f"az_{i}", 
+                                help="Orientation of the PV system on this roof in degrees. 0° is south, -90° is east, 90° is west.")
 
     roof_configs.append({
         "size": size,
@@ -89,18 +95,19 @@ st.sidebar.header("Consumption")
 
 annual_consumption = st.sidebar.number_input(
     "Annual Electricity Consumption (kWh)",
-    value=annual_consumption)
+    value=annual_consumption,
+    help="Total annual electricity consumption in kilowatt-hours (kWh). This includes all household electricity usage, such as lighting, appliances, and electronics.")
 
 use_hp = st.sidebar.checkbox(
     "Include Heat Pump",
-    value=use_hp)
-
+    value=use_hp,
+    help="Check to include a heat pump in the demand simulation.")
 if use_hp:
     hp_annual_heat = st.sidebar.number_input(
-        "Annual heat demand (kWh thermal)", value=12000)
+        "Annual heat demand (kWh thermal)", value=12000, help="Total annual heat demand in kilowatt-hours (kWh thermal) for the heat pump. This represents the amount of heat energy required for space heating and hot water.")
 
     indoor_temp = st.sidebar.number_input(
-        "Indoor temperature (°C)", value=21)
+        "Indoor temperature (°C)", value=21, help="Required indoor temperature in degrees Celsius.")
 
 run = st.button("Run simulation")
 
@@ -110,11 +117,12 @@ run = st.button("Run simulation")
 
 st.sidebar.subheader("Financial parameters")
                      
-pv_cost_per_kwp = st.sidebar.number_input("PV cost €/kWp", value=1200)
-battery_cost_per_kwh = st.sidebar.number_input("Battery cost €/kWh", value=600)
+pv_cost_per_kwp = st.sidebar.number_input("PV cost €/kWp", value=1200, help="Cost of the PV system per kilowatt peak in euros (including wiring, mounting, installation, etc.).")
+battery_cost_per_kwh = st.sidebar.number_input("Battery cost €/kWh", value=600, help="Cost of the battery per kilowatt-hour in euros (including wiring, mounting, installation, etc.).")
 
-lifetime = st.sidebar.slider("System lifetime (years)", 5, 30, 20)
-discount_rate = st.sidebar.slider("Discount rate (%)", 0.0, 10.0, 3.0) / 100
+lifetime = st.sidebar.slider("System lifetime (years)", 5, 30, 20, help="Expected lifetime of the system in years.")
+discount_rate = st.sidebar.slider("Discount rate (%)", 0.0, 10.0, 3.0, help="Discount rate for NPV calculation in percent.")
+discount_rate = discount_rate / 100 
 
 # ------------------------
 # OPTIMIZER
@@ -122,13 +130,14 @@ discount_rate = st.sidebar.slider("Discount rate (%)", 0.0, 10.0, 3.0) / 100
 
 st.sidebar.subheader("Optimizer")
 
-run_optimization = st.sidebar.checkbox("Run optimizer")
-pv_range = st.sidebar.slider("PV power range", 1, 20, 5)
-bat_range = st.sidebar.slider("Battery capacity range", 0, 20, 5)
+run_optimization = st.sidebar.checkbox("Run optimizer", value=False, help="Enable to run the optimization over a range of PV and battery sizes.")
+pv_range = st.sidebar.slider("PV power range", 1, 20, 5, help="Range of PV power (kWp) to explore around the current configuration for optimization.")
+bat_range = st.sidebar.slider("Battery capacity range", 0, 20, 5, help="Range of battery capacity (kWh) to explore around the current configuration for optimization.")
 
 objective = st.sidebar.selectbox(
     "Optimization target",
-    ["Net Present Value", "Internal Rate of Return", "Payback"]
+    ["Net Present Value", "Internal Rate of Return", "Payback"],
+    help="Select the objective for optimization. 'Net Present Value' maximizes the total value of the system, 'Internal Rate of Return' maximizes the percentage return, and 'Payback' minimizes the time to recover the investment."
 )
 
 # set min max
@@ -658,7 +667,9 @@ def make_heat_map(df_opt, objective_name, objective_id):
             "right": "2%",
             "top": "center",
             "textStyle": {"color": "#000", "fontSize": 16},
-            "inRange": {"color": ["#313695", "#4575b4", "#74add1", "#abd9e9", "#e0f3f8", "#ffffbf", "#fee090", "#fdae61", "#f46d43", "#d73027", "#a50026"]},
+            "inRange": {"color": ["#313695", "#4575b4", "#74add1", "#abd9e9", 
+                                  "#e0f3f8", "#ffffbf", "#fee090", "#fdae61", 
+                                  "#f46d43", "#d73027", "#a50026"]},
         },
         "series": [
             {
@@ -769,15 +780,23 @@ if run:
 
     st.header("Electricity")
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total annual consumption", f"{annual_consumption:.0f} kWh")
-    col2.metric("Total annual production", f"{bat['total_self_consumption'] + bat['grid_export']:.0f} kWh")
-    col3.metric("Total self consumption", f"{bat['total_self_consumption']:.0f} kWh")
-    col4.metric("Grid export (surplus)", f"{bat['grid_export']:.0f} kWh")
+    col1.metric("Total annual consumption", f"{annual_consumption:.0f} kWh",
+                help="Electricity consumed as specified in the input.")
+    col2.metric("Total annual production", f"{bat['total_self_consumption'] + bat['grid_export']:.0f} kWh", 
+                help="Electricity produced by the PV system, including both self-consumed and exported energy.")
+    col3.metric("Total self consumption", f"{bat['total_self_consumption']:.0f} kWh",
+                help="Electricity consumed directly from the PV system and battery discharge.")
+    col4.metric("Grid export (surplus)", f"{bat['grid_export']:.0f} kWh",
+                help="Export to the electricity grid.")
 
-    col1.metric("Direct PV consumption", f"{bat['direct_pv_consumption']:.0f} kWh")
-    col2.metric("Battery discharge", f"{bat['battery_to_load']:.0f} kWh")
-    col3.metric("Battery charge", f"{bat['pv_to_battery']:.0f} kWh")
-    col4.metric("Grid import (deficit)", f"{bat['grid_import']:.0f} kWh")
+    col1.metric("Direct PV consumption", f"{bat['direct_pv_consumption']:.0f} kWh",
+                help="Electricity consumed directly from the PV system without storage.")
+    col2.metric("Battery discharge", f"{bat['battery_to_load']:.0f} kWh",
+                help="Electricity discharged from the battery is charging reduced by storage efficiency as set in the inputs.")
+    col3.metric("Battery charge", f"{bat['pv_to_battery']:.0f} kWh",
+                help="Electricity charged from the PV system into the battery.")
+    col4.metric("Grid import (deficit)", f"{bat['grid_import']:.0f} kWh",
+                help="Electricity imported from the grid to cover the demand in low production periods.")
 
     widths = scale_to_range([bat['grid_export'], bat['grid_import'], 
                             bat['direct_pv_consumption'], bat['battery_to_load'], 
@@ -837,26 +856,36 @@ if run:
             height="400px"
         )
 
-
-
     st.header("Finance")
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Annual benefit", f"{annual_benefit:.0f} €")
-    col2.metric("Annual savings", f"{savings:.0f} €")
-    col3.metric("Annual feed-in revenue", f"{revenue:.0f} €")
-    col4.metric("Annual grid costs", f"{costs:.0f} €")
+    col1.metric("Annual benefit", f"{annual_benefit:.0f} €", 
+                help="The net benefit of the PV system. It is calculated as savings + revenue - grid cost.")
+    col2.metric("Annual savings", f"{savings:.0f} €", 
+                help="The savings from reduced electricity bills.")
+    col3.metric("Annual feed-in revenue", f"{revenue:.0f} €", 
+                help="The revenue from selling excess electricity to the grid. Is calculated as grid export * feed-in tariff.")
+    col4.metric("Annual grid costs", f"{costs:.0f} €", 
+                help="The costs of importing electricity from the grid. Is calculated as grid import * electricity price.")
 
-    col1.metric("Initial Investment", f"{total_investment:.0f} €")
-    col2.metric("Net Present Value", f"{npv:.0f} €")
-    col3.metric("Internal Rate of Return", f"{irr_res*100:.1f} %" if irr_res else "N/A")
-    col4.metric("Payback time", f"{payback:.1f} years" if payback else "N/A")
+    col1.metric("Initial Investment", f"{total_investment:.0f} €", 
+                help="Investment required for the PV + Battery. Is calculated as PV size * PV cost + Battery size * Battery cost.")
+    col2.metric("Net Present Value", f"{npv:.0f} €", 
+                help="The net present value of the PV system over its lifetime. It is calculated as the sum of discounted annual benefits minus the initial investment.")
+    col3.metric("Internal Rate of Return", f"{irr_res*100:.1f} %" if irr_res else "N/A", 
+                help="The internal rate of return of the PV system. It is the discount rate that makes the net present value of all cash flows equal to zero.")
+    col4.metric("Payback time", f"{payback:.1f} years" if payback else "N/A", 
+                help="The time it takes for the PV system to pay for itself. It is calculated as the initial investment divided by the annual benefit.")
 
     st.subheader("Cost comparison")
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Annual electricity cost grid only", f"{annual_grid_only_cost:.0f} €")
-    col2.metric("Annual electricity cost with PV", f"{annual_cost_with_pv:.0f} €")
-    col3.metric("Break-even reached after", f"{break_even_year} years" if break_even_year is not None else "N/A")
-    col4.metric("Levelized cost of energy", f"{lcoe_value:.0f} €/kWh" if lcoe_value > 1 else f"{lcoe_value*100:.0f} ct/kWh")
+    col1.metric("Annual electricity cost grid only", f"{annual_grid_only_cost:.0f} €",
+                help="Electricity cost without PV system. It is calculated as annual consumption * electricity price.")
+    col2.metric("Annual electricity cost with PV", f"{annual_cost_with_pv:.0f} €",
+                help="Electricity cost with PV system. It is calculated as grid costs minus revenue.")
+    col3.metric("Break-even reached after", f"{break_even_year} years" if break_even_year is not None else "N/A",
+                help="The time it takes for the PV system to reach the break-even point. It is the year when the cumulative cost of the PV system becomes lower than the cumulative cost of grid electricity.")
+    col4.metric("Levelized cost of energy", f"{lcoe_value:.0f} €/kWh" if lcoe_value > 1 else f"{lcoe_value*100:.0f} ct/kWh",
+                help="The levelized cost of energy. It is calculated as the net present value of the PV system divided by the discounted energy.")
 
     # ------------------------
     # PLOTS
@@ -867,8 +896,10 @@ if run:
     st_echarts(options=options, height="500px")
 
     with st.expander("📈 Meteorological Data", expanded=False):
-        st.header("Time series (first 3 days)")
-        st.subheader("Electricity consumption, PV generation and battery SOC")
+        st.header("Time series (first 3 days)", 
+                  help="Winter conditions are shown for the first 72 hours of the year.")
+        st.subheader("Electricity consumption, PV generation and battery SOC",
+                     help="The PV generation is based on the roof configuration and the weather data. The battery state of charge (SOC) is shown as a percentage of the total battery capacity.")
 
         plot_df = pd.DataFrame({
             "PV": df["P_kW"][:72].values,
@@ -923,14 +954,20 @@ if run:
         optimum_reached = is_optimum_in_interior(df_opt, v_id, pv_min, pv_max, bat_min, bat_max)
 
         col1, col2, col3 = st.columns(3)
-        col1.metric("PV power", f"{best['pv']:.0f} kWp")
-        col2.metric("Battery capacity", f"{best['battery']:.0f} kWh")
-        col3.metric("Global optimum reached", "✅ YES" if optimum_reached else "❌ NO")
+        col1.metric("PV power", f"{best['pv']:.0f} kWp",
+                    help="The optimal peak power of the PV system.")
+        col2.metric("Battery capacity", f"{best['battery']:.0f} kWh",
+                    help="The optimal capacity of the battery system.")
+        col3.metric("Global optimum reached", "✅ YES" if optimum_reached else "❌ NO",
+                    help="If NOT reached, consider expanding the range for better results or set pv size or battery size to the local optimum and rerun.")
 
         col1, col2, col3 = st.columns(3)
-        col1.metric("Net Present Value", f"{best['npv']:.0f} €")
-        col2.metric("Internal Rate of Return", f"{best['irr']*100:.1f} %")
-        col3.metric("Payback", f"{best['payback']:.1f} years")
+        col1.metric("Net Present Value", f"{best['npv']:.0f} €", 
+                    help="The net present value of the PV system over its lifetime. It is calculated as the sum of discounted annual benefits minus the initial investment.")
+        col2.metric("Internal Rate of Return", f"{best['irr']*100:.1f} %",
+                    help="The internal rate of return of the PV system. It is the discount rate that makes the net present value of all cash flows equal to zero.")
+        col3.metric("Payback", f"{best['payback']:.1f} years",
+                    help="The time it takes for the PV system to pay for itself. It is calculated as the initial investment divided by the annual benefit.")
 
         st.subheader(f"{objective} optimization heatmap")
         options = make_heat_map(df_opt, objective, v_id)
@@ -938,5 +975,7 @@ if run:
 
         with st.expander("Optimization result values", expanded=False):
             st.subheader(f"Objective Values for {objective}")
+            if not optimum_reached:
+                st.warning("The global optimum is at the boundary of the optimization range. Consider expanding the range for better results.", icon="⚠️")
             pivot = df_opt.pivot(index="pv", columns="battery", values=v_id)
             st.dataframe(pivot)
