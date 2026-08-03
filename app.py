@@ -709,7 +709,7 @@ if run:
     # ------------------------
     # BATTERY SIMULATION
     # ------------------------
-    bat = calculate_battery_simulation(df, load, battery_kwh)
+    bat = calculate_battery_simulation(df, load, battery_kwh, eff=battery_eff)
 
     # ------------------------
     # ECONOMICS
@@ -770,7 +770,7 @@ if run:
     st.header("Electricity")
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total annual consumption", f"{annual_consumption:.0f} kWh")
-    col2.metric("Total annual generation", f"{bat['total_self_consumption'] + bat['grid_export']:.0f} kWh")
+    col2.metric("Total annual production", f"{bat['total_self_consumption'] + bat['grid_export']:.0f} kWh")
     col3.metric("Total self consumption", f"{bat['total_self_consumption']:.0f} kWh")
     col4.metric("Grid export (surplus)", f"{bat['grid_export']:.0f} kWh")
 
